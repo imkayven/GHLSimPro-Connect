@@ -27,13 +27,23 @@ def log_post_request():
     site_city = data.get('site_city', '')
     site_postal_code = data.get('site_postal_code', '')
     site_country = data.get('site_country', '')
-    site_contact_first_name = data.get('site_contact_first_name', '')
-    site_contact_last_name = data.get('site_contact_last_name', '')
-    site_contact_email = data.get('site_contact_email', '')
-    site_contact_phone = data.get('site_contact_phone', '')
-    message = data.get('message', '')
+    # site_contact_first_name = data.get('site_contact_first_name', '')
+    site_contact_first_name = data.get('Contact Given Name', '')
+    # site_contact_last_name = data.get('site_contact_last_name', '')
+    site_contact_last_name = data.get('Contact Family Name', '')
+    # site_contact_email = data.get('site_contact_email', '')
+    site_contact_email = data.get('Contact Email', '')
+    # site_contact_phone = data.get('site_contact_phone', '')
+    site_contact_phone = data.get('Contact CellPhone', '')
+    # message = data.get('message', '')
+    message = data.get('Quote Notes', '')
     opportunity_name = data.get('opportunity_name', '')
-    jobs_name = data.get('jobs_name', '')
+    # jobs_name = data.get('jobs_name', '')
+    jobs_name = data.get('Jobs Name', '')
+    order_number = data.get('Order Number', '')
+    request_number = data.get('Quote Request Number', '')
+    date_issued = data.get('Invoice Date Issued', '')
+    due_issued = data.get('Invoice Due Date', '')
 
     headers = {
         "Authorization": "Bearer f1062d64733b36d51d35f615e6ebfe5a94a44d2b", 
@@ -136,14 +146,14 @@ def log_post_request():
         "Customer": customer_id,
         "Site": site_id,
         "SiteContact": contact_id,
-        "OrderNo": "ORD123",
-        "RequestNo": "REQ456",
+        "OrderNo": order_number,
+        "RequestNo": request_number,
         "Name": jobs_name,
         "Description": opportunity_name,
         "Notes": message,
         "AutoAdjustStatus": False,
         "Stage": "Pending",
-        "DateIssued": "",
+        "DateIssued": date_issued,
         "DueDate": ""
     }
 
