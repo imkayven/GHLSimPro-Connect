@@ -7,7 +7,7 @@ app = Flask(__name__, template_folder='templates', static_folder='static', stati
 
 
 
-@app.route('/connect', methods=['POST'])
+@app.route('/create-job', methods=['POST'])
 def log_post_request():
     # Get the JSON data from the request
     data = request.get_json()
