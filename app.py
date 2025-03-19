@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 # from dotenv import load_dotenv
 # from swagger.swaggerui import setup_swagger
+from datetime import datetime
 import requests
 
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
@@ -44,6 +45,16 @@ def log_post_request():
     request_number = data.get('Quote Request Number', '')
     date_issued = data.get('Invoice Date Issued', '')
     due_issued = data.get('Invoice Due Date', '')
+
+
+    # Convert the date format from DD/MM/YYYY to YYYY-MM-DD
+    try:
+        date_issued = datetime.strptime(date_issued, '%d/%m/%Y').strftime('%Y-%m-%d')
+        due_issued = datetime.strptime(due_issued, '%d/%m/%Y').strftime('%Y-%m-%d')
+    except ValueError as e:
+        print(f"Error converting date: {e}")
+        return jsonify({"status": "error", "message": "Invalid date format"}), 400
+
 
     headers = {
         "Authorization": "Bearer f1062d64733b36d51d35f615e6ebfe5a94a44d2b", 
