@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 # from swagger.swaggerui import setup_swagger
 from datetime import datetime
 import requests
+import random
 
 app = Flask(__name__, template_folder='templates', static_folder='static', static_url_path='/static')
 
@@ -446,6 +447,198 @@ def create_quote():
     print(f"Quote created successfully with ID: {quote_id}")
 
     return jsonify({"status": "success", "quote_id": quote_id}), 200
+
+
+@app.route('/create-new-quote', methods=['POST'])
+def create_new_quote():
+    data = request.json
+
+    # Extract required fields
+    customer_email = data.get("Form Email", "")
+    customer_name = data.get("Form Full Name", "")
+    customer_phone = data.get("Form Phone Number", "")
+    preferred_date = data.get("Preferred date", "")
+    service_address = data.get("Service Address", "")
+    service_type = data.get("Service type", "")
+    appointment_id = data.get("appointmentId", "")
+    calendar_name = data.get("calendarName", "")
+    start_time = data.get("startTime", "")
+    status = data.get("status", "")
+
+
+    # Mockup for name split
+    name_parts = customer_name.split(" ", 1)
+    first_name = name_parts[0]
+    last_name = name_parts[1] if len(name_parts) > 1 else ""
+
+    # # Convert the date format from DD/MM/YYYY to YYYY-MM-DD for start and end dates
+    # try:
+    #     quote_start_date = datetime.strptime(quote_start_date, '%d/%m/%Y').strftime('%Y-%m-%d')
+    #     quote_end_date = datetime.strptime(quote_end_date, '%d/%m/%Y').strftime('%Y-%m-%d')
+    #     date_issued = datetime.strptime(date_issued, '%d/%m/%Y').strftime('%Y-%m-%d')
+    #     due_issued = datetime.strptime(due_issued, '%d/%m/%Y').strftime('%Y-%m-%d')
+    # except ValueError as e:
+    #     print(f"Error converting date: {e}")
+    #     return jsonify({"status": "error", "message": "Invalid date format"}), 400
+
+    # Define headers for the request
+    headers = {
+        "Authorization": "Bearer f1062d64733b36d51d35f615e6ebfe5a94a44d2b", 
+        "Content-Type": "application/json"
+    }
+
+    # Step 1: Create a new individual customer
+    print("Step 1: Creating new individual customer...")
+    customer_payload = {
+        "GivenName": first_name,
+        "FamilyName": last_name,
+        "Phone": customer_email,
+        "DoNotCall": True,
+        "AltPhone": customer_email,
+        "Address": {
+            "Address": service_address,
+            "City": "n/a",
+            "State": "n/a",
+            "PostalCode": "n/a",
+            "Country": "n/a"
+        },
+        "BillingAddress": {
+            "Address": service_address,
+            "City": "n/a",
+            "State": "n/a",
+            "PostalCode": "n/a",
+            "Country": "n/a"
+        },
+        "CustomerType": "Customer",
+        "Email": customer_email,
+        "CellPhone": customer_email,
+        "Archived": True
+    }
+
+    customer_api_url = "https://craftedgandl.simprosuite.com/api/v1.0/companies/0/customers/individuals/"
+    customer_response = requests.post(customer_api_url, json=customer_payload, headers=headers)
+    
+    if customer_response.status_code // 100 != 2:  # checks for 2xx success codes (200, 201)
+        print(f"Error in Step 1: {customer_response.status_code} - {customer_response.text}")
+        return jsonify({"status": "error", "message": "Failed to create customer"}), 500
+
+    customer_id = customer_response.json().get('ID')
+    print(f"Customer created successfully with ID: {customer_id}")
+
+
+    # Step 2: List all the contacts and pick a random one with both first and last name
+    print("Step 2: Retrieving contact list...")
+    url = "https://craftedgandl.simprosuite.com/api/v1.0/companies/0/contacts/"
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code != 200:
+        print(f"Error in Step 2: {response.status_code} - {response.text}")
+        return jsonify({"status": "error", "message": "Failed to retrieve contacts"}), 500
+
+    contacts = response.json()
+
+    # Filter contacts that have both first name and last name
+    valid_contacts = [contact for contact in contacts if contact.get("GivenName") and contact.get("FamilyName")]
+
+    if not valid_contacts:
+        print("Error in Step 2: No valid contacts found with both first and last name")
+        return jsonify({"status": "error", "message": "No valid contacts found with both first and last name"}), 500
+
+    # Randomly pick a contact
+    selected_contact = random.choice(valid_contacts)
+    contact_id = selected_contact["ID"]
+    contact_name = f"{selected_contact['GivenName']} {selected_contact['FamilyName']}"
+    
+    print(f"Selected contact: {contact_name} with ID: {contact_id}")
+
+    # Step 3: Retrieve the contact details using the contact ID
+    print("Step 3: Retrieving contact details...")
+    contact_details_url = f"https://craftedgandl.simprosuite.com/api/v1.0/companies/0/contacts/{contact_id}"
+    contact_details_response = requests.get(contact_details_url, headers=headers)
+
+    if contact_details_response.status_code != 200:
+        print(f"Error in Step 3: {contact_details_response.status_code} - {contact_details_response.text}")
+        return jsonify({"status": "error", "message": "Failed to retrieve contact details"}), 500
+
+    contact_details = contact_details_response.json()
+
+    # Step 4: Create a new site
+    print("Step 4: Creating new site...")
+    site_payload = {
+        "Name": "Unnamed site",
+        "Address": {
+            "Address": service_address,
+            "City": "n/a",
+            "State": "n/a",
+            "PostalCode": "n/a",
+            "Country": "n/a"
+        },
+        "PrimaryContact": {
+            "Contact": contact_id  # Use the correct structure with Contact as an object
+        },
+        "PublicNotes": "Public Notes here",
+        "PrivateNotes": "Private Notes here",
+        "Archived": False
+    }
+
+
+    # Step 5: Create the quote
+    print("Step 5: Creating new quote...")
+    quote_payload = {
+        "Customer": customer_id,
+        "CustomerContact": contact_id,
+        "Site": site_id,
+        "SiteContact": contact_id,  # Use the same contact ID for site contact
+        "Description": "Auto-generated quote",
+        "Notes": "Notes here",
+        "Type": "Project",
+        "DateIssued": preferred_date,  # YYYY-MM-DD
+        "DueDate": preferred_date,     # YYYY-MM-DD
+        "ValidityDays": 30,
+        "OrderNo": "ORDER123",
+        "RequestNo": "REQ123",
+        "Name": "Unnamed Quote",
+        "Stage": "Pending",
+        "Forecast": {
+            "Year": 2025,
+            "Month": 5,
+            "Percent": 75
+        },
+        "AutoAdjustStatus": True
+    }
+
+    # Make the request to create the quote
+    quote_api_url = "https://craftedgandl.simprosuite.com/api/v1.0/companies/0/quotes/"
+    quote_response = requests.post(quote_api_url, json=quote_payload, headers=headers)
+
+    if quote_response.status_code // 100 != 2:  # checks for 2xx success codes (200, 201)
+        print(f"Error in Step 4: {quote_response.status_code} - {quote_response.text}")
+        return jsonify({"status": "error", "message": "Failed to create quote"}), 500
+
+    quote_id = quote_response.json().get('ID')
+    print(f"Quote created successfully with ID: {quote_id}")
+
+    # return jsonify({"status": "success", "quote_id": quote_id}), 200
+
+    return jsonify({
+        "Form Full Name": customer_name,
+        "Form Email": customer_email,
+        "Form Phone Number": customer_email,
+        "Preferred date": preferred_date,
+        "Service Address": service_address,
+        "Service type": service_type,
+        "appointmentId": appointment_id,
+        "calendarName": calendar_name,
+        "startTime": start_time,
+        "status": status,
+        "assigned_technician": contact_name,
+        "contact_details_response": contact_details_response
+    }), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
 
 @app.route('/', methods=['GET'])
 def index():
