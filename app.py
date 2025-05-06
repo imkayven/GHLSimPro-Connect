@@ -462,7 +462,7 @@ def create_new_quote():
     service_type = data.get("Service Type ", "")
     appointment_id = data.get("appointmentId", "")
     calendar_name = data.get("calendarName", "")
-    start_time = data.get("startTime", "")
+    start_time_raw = data.get("startTime", "")
     status = data.get("status", "")
 
 
@@ -563,6 +563,7 @@ def create_new_quote():
 
     contact_details = contact_details_response.json()
 
+
     # Step 4: Create a new site
     print("Step 4: Creating new site...")
     site_payload = {
@@ -592,6 +593,12 @@ def create_new_quote():
     site_id = site_response.json().get('ID')
     print(f"Site created successfully with ID: {site_id}")
 
+
+    start_time_raw = data.get("startTime", "")
+    try:
+        start_time = datetime.fromisoformat(start_time_raw).date().isoformat() if start_time_raw else datetime.today().date().isoformat()
+    except ValueError:
+        start_time = datetime.today().date().isoformat()
 
     # Step 5: Create the quote
     print("Step 5: Creating new quote...")
@@ -659,7 +666,7 @@ def create_new_job():
     service_type = data.get("Service Type ", "")
     appointment_id = data.get("appointmentId", "")
     calendar_name = data.get("calendarName", "")
-    start_time = data.get("startTime", "")
+    start_time_raw = data.get("startTime", "")
     status = data.get("status", "")
 
 
@@ -791,6 +798,13 @@ def create_new_job():
 
     # Step 5: Create a new job with the customerId, contactId, and siteId
     print("Step 5: Creating new job...")
+
+    start_time_raw = data.get("startTime", "")
+    try:
+        start_time = datetime.fromisoformat(start_time_raw).date().isoformat() if start_time_raw else datetime.today().date().isoformat()
+    except ValueError:
+        start_time = datetime.today().date().isoformat()
+
     job_payload = {
         "Type": "Project",
         "Customer": customer_id,
@@ -803,7 +817,7 @@ def create_new_job():
         "Notes": "Notes here",
         "AutoAdjustStatus": False,
         "Stage": "Pending",
-        "DateIssued": startTime,
+        "DateIssued": start_time,
         "DueDate": ""
     }
 
