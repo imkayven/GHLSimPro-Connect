@@ -650,7 +650,7 @@ def create_new_quote():
         "startTime": start_time,
         "status": status,
         "assigned_technician": contact_name,
-        "contact_details_response": contact_details_response
+        "contact_details_response": contact_details
     }), 200
 
 @app.route('/create-new-job', methods=['POST'])
@@ -770,7 +770,7 @@ def create_new_job():
     # Step 4: Create a new site
     print("Step 4: Creating new site...")
     site_payload = {
-        "Name": "Unnamed site",
+        "Name": service_address,
         "Address": {
             "Address": service_address,
             "City": "n/a",
@@ -844,7 +844,7 @@ def create_new_job():
         "startTime": start_time,
         "status": status,
         "assigned_technician": contact_name,
-        "contact_details_response": contact_details_response
+        "contact_details_response": contact_details
     }), 200
 
 
