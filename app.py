@@ -637,7 +637,7 @@ def create_new_quote():
     }), 200
 
 @app.route('/create-new-job', methods=['POST'])
-def create_new_quote():
+def create_new_job():
     data = request.json
 
     # Extract required fields
