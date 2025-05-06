@@ -805,6 +805,8 @@ def create_new_job():
     except ValueError:
         start_time = datetime.today().date().isoformat()
 
+    job_name = f"{service_type} Job for {contact_name} on {preferred_date}"
+
     job_payload = {
         "Type": "Project",
         "Customer": customer_id,
@@ -812,7 +814,7 @@ def create_new_job():
         "SiteContact": contact_id,
         "OrderNo": "ORDER123",
         "RequestNo": "REQUEST123",
-        "Name": "Unnamed Job",
+        "Name": job_name,
         "Description": "Auto-generated job",
         "Notes": "Notes here",
         "AutoAdjustStatus": False,
