@@ -582,6 +582,16 @@ def create_new_quote():
         "Archived": False
     }
 
+    site_api_url = "https://craftedgandl.simprosuite.com/api/v1.0/companies/0/sites/"
+    site_response = requests.post(site_api_url, json=site_payload, headers=headers)
+
+    if site_response.status_code // 100 != 2:  # checks for 2xx success codes (200, 201)
+        print(f"Error in Step 4: {site_response.status_code} - {site_response.text}")
+        return jsonify({"status": "error", "message": "Failed to create site"}), 500
+
+    site_id = site_response.json().get('ID')
+    print(f"Site created successfully with ID: {site_id}")
+
 
     # Step 5: Create the quote
     print("Step 5: Creating new quote...")
@@ -769,8 +779,18 @@ def create_new_job():
         "Archived": False
     }
 
+    site_api_url = "https://craftedgandl.simprosuite.com/api/v1.0/companies/0/sites/"
+    site_response = requests.post(site_api_url, json=site_payload, headers=headers)
+
+    if site_response.status_code // 100 != 2:  # checks for 2xx success codes (200, 201)
+        print(f"Error in Step 4: {site_response.status_code} - {site_response.text}")
+        return jsonify({"status": "error", "message": "Failed to create site"}), 500
+
+    site_id = site_response.json().get('ID')
+    print(f"Site created successfully with ID: {site_id}")
+
     # Step 5: Create a new job with the customerId, contactId, and siteId
-    print("Step 4: Creating new job...")
+    print("Step 5: Creating new job...")
     job_payload = {
         "Type": "Project",
         "Customer": customer_id,
